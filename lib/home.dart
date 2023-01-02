@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'dart:math';
-// import 'package:geofence_flutter/geofence_flutter.dart';
+import 'package:geofence_flutter/geofence_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'setting.dart';
 import 'add_map.dart';

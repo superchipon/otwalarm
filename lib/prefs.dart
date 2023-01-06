@@ -3,13 +3,13 @@ import 'dart:ffi';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
-int unitCounter = 0;
-List<String> unitNames = [];
-List<double> unitLongitudes = [];
-List<double> unitLatitudes = [];
-List<double> unitDistances = [];
-List<String> unitModes = [];
-List<bool> unitOn =[];
+int unitCounter = 1;
+List<String> unitNames = ["Alarm 1"];
+List<double> unitLongitudes = [-7];
+List<double> unitLatitudes = [100];
+List<double> unitDistances = [100];
+List<String> unitModes = ["On Entry"];
+List<bool> unitOn =[true];
 
 Future<String> loadPrefString(String keyword) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();

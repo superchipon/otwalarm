@@ -101,15 +101,20 @@ class _HomePageState extends State<HomePage> {
             elevation: 0,
             child: Row(
               children: [
-                Column(
-                  children: [
-                    Text(unitNames[index]),
-                    Text(unitDistances[index].toString()),
-                    Text(unitOn[index].toString()),
-                    ElevatedButton(onPressed: (){activateUnit (index, unitDistances[index]);}, child: Text('Activate'))
-                  ]
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(unitNames[index],
+                        style: Theme.of(context).textTheme.headline5),
+                      Text(unitDistances[index].round().toString() + ' ' + distanceUnit.toLowerCase()),
+                      Text(unitModes[index], 
+                        style: TextStyle(color:
+                          (unitModes[index] == 'On Entry') ? Colors.green : Colors.red,),),
+                    ]
+                  ),
                 ),
-                
+                ElevatedButton(onPressed: (){activateUnit (index, unitDistances[index]);}, child: Text('Activate'))
               ],
             ),
           );

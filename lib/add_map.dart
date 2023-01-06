@@ -18,7 +18,7 @@ CameraPosition? cameraPosition;
 LatLng startLocation = LatLng(37.42796133580664, -122.085749655962); 
 String location = "Search Location"; 
 double zoomLevel = 15;
-String alarmMode = 'onEntry';
+String alarmMode = 'On Entry';
 List<Marker> _markers = <Marker>[];
 TextEditingController nameController = TextEditingController();
 String distanceUnit = 'METERS';
@@ -243,8 +243,12 @@ class _AddMapState extends State<AddMap> {
                       inactiveFgColor: Colors.white,
                       inactiveBgColor: Colors.black26,
                       onToggle: (index) {
-                        
-                        print('switched to: $index');
+                        if (index == 0) {
+                          alarmMode = 'On Entry';
+                        }
+                        else {
+                          alarmMode = 'On Leave';
+                        }
                         
                       },
                     ),

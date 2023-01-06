@@ -1,120 +1,129 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_google_places_hoc081098/flutter_google_places_hoc081098.dart';
-import 'package:google_api_headers/google_api_headers.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_maps_webservice/places.dart';
+import 'dart:async';
 
-void main(){
+import 'package:flutter/material.dart';
+import 'package:geofence_flutter/geofence_flutter.dart';
+
+void main() {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget{
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Home(),
+      title: 'Flutter Geofence',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: MyHomePage(title: 'Flutter Geofence'),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class Home extends StatefulWidget{
+class MyHomePage extends StatefulWidget {
+  MyHomePage({Key? key, required this.title}) : super(key: key);
+
+  final String title;
+
   @override
-  _HomeState createState() => _HomeState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _HomeState extends State<Home> {
-  String googleApikey = "AIzaSyDSOh8p7QSDJKNgi5Znz7WqWdroKkYM9aY";
-  GoogleMapController? mapController; //contrller for Google map
-  CameraPosition? cameraPosition;
-  LatLng startLocation = LatLng(37.42796133580664, -122.085749655962); 
-  String location = "Search Location"; 
+class _MyHomePageState extends State<MyHomePage> {
+  StreamSubscription<GeofenceEvent>? geofenceEventStream;
+  String geofenceEvent = '';
+
+  TextEditingController latitudeController = new TextEditingController();
+  TextEditingController longitudeController = new TextEditingController();
+  TextEditingController radiusController = new TextEditingController();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
-          appBar: AppBar( 
-             title: Text("Place Search Autocomplete Google Map"),
-             backgroundColor: Colors.deepPurpleAccent,
-          ),
-          body: Stack(
-            children:[
-
-              GoogleMap( //Map widget from google_maps_flutter package
-                  zoomGesturesEnabled: true, //enable Zoom in, out on map
-                  initialCameraPosition: CameraPosition( //innital position in map
-                    target: startLocation, //initial position
-                    zoom: 14.0, //initial zoom level
-                  ),
-                  mapType: MapType.normal, //map type
-                  onMapCreated: (controller) { //method called when map is created
-                    setState(() {
-                      mapController = controller; 
-                    });
-                  },
-             ),
-
-           
-
-             //search autoconplete input
-             Positioned(  //search input bar
-               top:10,
-               child: InkWell(
-                 onTap: () async {
-                  var place = await PlacesAutocomplete.show(
-                          context: context,
-                          apiKey: googleApikey,
-                          mode: Mode.overlay,
-                          types: [],
-                          strictbounds: false,
-                          // components: [Component(Component.country, 'np')],
-                                      //google_map_webservice package
-                          onError: (err){
-                             print(err);
-                          }
-                      );
-
-                   if(place != null){
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          // mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              "Geofence Event: " + geofenceEvent,
+            ),
+            TextField(
+              controller: latitudeController,
+              decoration: InputDecoration(
+                  border: InputBorder.none, hintText: 'Enter pointed latitude'),
+            ),
+            TextField(
+              controller: longitudeController,
+              decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Enter pointed longitude'),
+            ),
+            TextField(
+              controller: radiusController,
+              decoration: InputDecoration(
+                  border: InputBorder.none, hintText: 'Enter radius meter'),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  child: Text("Start"),
+                  onPressed: () async {
+                    print("start");
+                    await Geofence.startGeofenceService(
+                        pointedLatitude: latitudeController.text,
+                        pointedLongitude: longitudeController.text,
+                        radiusMeter: radiusController.text,
+                        eventPeriodInSeconds: 10);
+                    if (geofenceEventStream == null) {
+                      geofenceEventStream = Geofence.getGeofenceStream()
+                          ?.listen((GeofenceEvent event) {
+                        print(event.toString());
                         setState(() {
-                          location = place.description.toString();
+                          geofenceEvent = event.toString();
                         });
+                      });
+                    }
+                  },
+                ),
+                SizedBox(
+                  width: 10.0,
+                ),
+                TextButton(
+                  child: Text("Stop"),
+                  onPressed: () {
+                    print("stop");
+                    Geofence.stopGeofenceService();
+                    geofenceEventStream?.cancel();
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                       //form google_maps_webservice package
-                       final plist = GoogleMapsPlaces(apiKey:googleApikey,
-                              apiHeaders: await GoogleApiHeaders().getHeaders(),
-                                        //from google_api_headers package
-                        );
-                        String placeid = place.placeId ?? "0";
-                        final detail = await plist.getDetailsByPlaceId(placeid);
-                        final geometry = detail.result.geometry!;
-                        final lat = geometry.location.lat;
-                        final lang = geometry.location.lng;
-                        var newlatlang = LatLng(lat, lang);
-                        
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    latitudeController.dispose();
+    longitudeController.dispose();
+    radiusController.dispose();
 
-                        //move map camera to selected place with animation
-                        mapController?.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(target: newlatlang, zoom: 17)));
-                   }
-                 },
-                 child:Padding(
-                   padding: EdgeInsets.all(15),
-                    child: Card(
-                       child: Container(
-                         padding: EdgeInsets.all(0),
-                         width: MediaQuery.of(context).size.width - 40,
-                         child: ListTile(
-                            title:Text(location, style: TextStyle(fontSize: 18),),
-                            trailing: Icon(Icons.search),
-                            dense: true,
-                         )
-                       ),
-                    ),
-                 )
-               )
-             )
-
-
-            ]
-          )
-       );
+    super.dispose();
   }
 }

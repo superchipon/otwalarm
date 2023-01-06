@@ -22,6 +22,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  StreamSubscription<GeofenceEvent>? geofenceEventStream;
+  String geofenceEvent = '';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(    
@@ -71,6 +74,14 @@ class _HomePageState extends State<HomePage> {
                   flex: 2,
                   child: Text('Good Morning, ' + xName[Random().nextInt(xName.length)], style: Theme.of(context).textTheme.headline3)
                 ),
+                Expanded(
+                  flex: 1,
+                  child: Text(geofenceEvent)
+                ),
+                Expanded(
+                  flex: 1,
+                  child: ElevatedButton(child: Text('stop unit'), onPressed: stopUnit,)
+                ),
                 alarmList(),
               ],
             ),
@@ -88,20 +99,57 @@ class _HomePageState extends State<HomePage> {
         itemBuilder: (context, index){
           return Card(
             elevation: 0,
-            child: Column(
+            child: Row(
               children: [
-                Text(unitNames[index]),
-                Text(unitLatitudes[index].toString()),
-                Text(unitLongitudes[index].toString()),
-                Text(unitDistances[index].toString()),
-                Text(unitOn[index].toString()),
-              ]
+                Column(
+                  children: [
+                    Text(unitNames[index]),
+                    Text(unitDistances[index].toString()),
+                    Text(unitOn[index].toString()),
+                    ElevatedButton(onPressed: (){activateUnit (index, unitDistances[index]);}, child: Text('Activate'))
+                  ]
+                ),
+                
+              ],
             ),
           );
         },
         )
     ),
   );
-}
+  } // Alarmlist
+
+  activateUnit(int index, double radius) async {
+    await Geofence.startGeofenceService(
+      pointedLatitude: unitLatitudes[index].toString(),
+      pointedLongitude: unitLongitudes[index].toString(),
+      radiusMeter: radius.toString(),
+      eventPeriodInSeconds: 10);
+    print(unitLatitudes[index]);
+    geofenceEventStream ??= Geofence.getGeofenceStream()?.listen((GeofenceEvent event) {     
+        print(event.toString()); 
+        setState(() {
+          geofenceEvent = event.toString();
+          
+        });
+      });
+    // else{
+    //   Geofence.getGeofenceStream()?.listen((GeofenceEvent event) {        
+    //     setState(() {
+    //       geofenceEvent = 'test';
+    //     });
+    //   });
+    // }
+  } //activateUnit
+
+  stopUnit(){
+    print("stop");
+    Geofence.stopGeofenceService();
+    geofenceEventStream?.cancel();
+
+  } //stopUnit
+
+  
+
 }
 

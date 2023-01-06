@@ -63,7 +63,7 @@ class _AddMapState extends State<AddMap> {
     //This is optional, it will zoom when the marker has been created
     // GoogleMapController controller = await _controller.future;
     // controller.animateCamera(CameraUpdate.newLatLngZoom(latlang, 17.0));
-    mapController?.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(target: latlang, zoom: zoomLevel)));
+    // mapController?.animateCamera(CameraUpdate.newCameraPosition(CameraPosition(target: latlang, zoom: zoomLevel)));
   }
 
   Future<Position> getUserCurrentLocation() async {
